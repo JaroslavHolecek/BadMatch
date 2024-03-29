@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>|BadTournament</title>
+<link rel="stylesheet" href="style/first.css">
+</head>
+<body>
+
+<div id="tournament-div">
+    <h1>Tournament</h1>
+    <form id="tournament-form" class="info-div" style="display: none;">
+        <div class="info">
+            <label for="form-tournament-select">Load:</label>
+            <select id="form-tournament-select" name="form-tournament-select">
+
+            </select>
+
+            <label for="form-tournament-name">Name:</label>
+            <input type="text" id="form-tournament-name" name="tournament-name" required>
+
+            <label for="form-tournament-date">Date:</label>
+            <input type="date" id="form-tournament-date" name="tournament-date" required>
+
+            <label for="form-tournament-round">Round:</label>
+            <input type="number" id="form-tournament-round" name="round-number" required>
+        </div>
+
+        <div class="actions">
+            <button type="button" id="tournament-clear">Remove whole tournament</button>
+            <button type="button" id="tournament-confirm-settings">Confirm Tournament Settings</button>  
+        </div>
+    </form>
+
+    <div id="tournament-info" class="info-div">
+        <div class="info">
+            <p id="info-tournament-name"></p>
+            <p id="info-tournament-date"></p>
+            <p id="info-tournament-round">Round: </p>
+        </div>
+
+        <div class="actions">
+            <button type="button" id="tournament-draw">Draw matches</button>
+        
+            <button type="button" id="tournament-edit-settings">Edit Tournament</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="all-player-div">
+    <h1>Players</h1>
+    <h2>Add player:</h2>
+    <form id="all-player-form" class="info-div">
+        <div class="info">
+            <label for="form-add-player-name">Name:</label>
+            <input type="text" id="form-add-player-name" name="form-add-player-name" required>
+            
+            <label for="form-add-player-id">ID:</label>
+            <input type="number" id="form-add-player-id" name="form-add-player-id" required>
+            
+            <label for="form-add-player-birthyear">Birth Year:</label>
+            <input type="number" id="form-add-player-birthyear" name="form-add-player-birthyear" required>
+            
+            <label for="form-add-player-club">Club:</label>
+            <input type="text" id="form-add-player-club" name="form-add-player-club" required>
+        </div>
+        <div class="actions">
+            <button type="button" id="player-add" >Add Player</button>
+        </div>
+            
+    </form>
+    <div id="all-player-info">
+        <h2>Actual players:</h2>      
+        <div id="player-list"></div>
+    </div>  
+    <button id="cancelMoveButton" onclick="cancelMoving()" style="display: none;">Cancel moving</button>
+</div>
+
+<script src="../src/index.js"></script>
+
+</body>
+</html>

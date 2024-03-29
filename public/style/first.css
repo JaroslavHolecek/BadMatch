@@ -1,0 +1,115 @@
+/* Center the content */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: 0;
+    text-align: center;
+}
+
+label{
+    display: inline-block;
+    min-width: 25%;
+    max-width: 25%;
+}
+
+input, select{
+    display: inline-block;
+    min-width: 70%;
+    max-width: 70%;
+    margin: 0.5em 0;
+}
+
+/* Tournament part */
+#tournament-div {
+    width: 90%;
+    padding: 2%;
+    margin-bottom: 0.5em;
+    border: 1px solid #ccc;
+    border-radius: 1em;
+    background-color: #f0f0f0;
+}
+
+/* Players part */
+#all-player-div {
+    width: 90%;
+    padding: 2%;
+    border: 1px solid #ccc;
+    border-radius: 1em;
+    background-color: #f0f0f0;
+}
+
+/* Player list */
+#player-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Player rectangle */
+.player-div {
+    width: 95%;
+    padding: 2%;
+    margin-bottom: 0.1em;
+    border: 1px solid #ccc;
+    border-radius: 1em; 
+    background-color: #ddd;
+    transition: background-color 0.3s ease;
+}
+
+/* Change color on hover */
+.player-div:hover {
+    background-color: #bbb;
+}
+
+.info-div{
+    display: grid;
+    grid-template-columns: 1fr 20%; /* First column takes up remaining space, second column auto adjusts */
+    gap: 0.5em; /* Gap between columns */
+}
+
+.info-div .info {
+    grid-column: 1; /* Paragraphs span the first column */
+}
+
+.two-column-info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5em; /* Gap between columns */
+}
+
+.info .info-order {
+    grid-column: 1; /* Order span the first column */
+}
+.info .info-rest {
+    grid-column: 2z; /* Order span the first column */
+}
+
+.info-div .actions {
+    grid-column: 2; /* Actions span the second column */
+    display: grid;
+    flex-direction: column;
+    align-content: end;
+}
+
+.actions button{
+    margin: 0.5em 0 0.5em 0;
+}
+
+/* Highlight selected player */
+.player-to-move {
+    background-color: rgb(107, 143, 209);
+}
+.player-to-move:hover {
+    background-color: rgb(86, 128, 206);;
+}
+#cancelMoveButton {
+    position: fixed;
+    bottom: 0.5em;
+    right: 0.5em;
+}
+
+#tournament-clear, .btn-player-remove{
+    margin-bottom: 3em;
+}
