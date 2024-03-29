@@ -40,14 +40,17 @@
             <p id="info-tournament-round">Round: </p>
         </div>
 
-        <div class="actions">
-            <button type="button" id="tournament-draw">Draw matches</button>
-        
+        <div class="actions">        
             <button type="button" id="tournament-edit-settings">Edit Tournament</button>
         </div>
     </div>
 </div>
 
+<div id="btn-show-container">
+    <button type="button" class="btn-show" id="btn-show-players">Players</button>
+    <button type="button" class="btn-show" id="btn-show-matches">Matches</button>
+    <button type="button" class="btn-show" id="btn-show-order">Order</button>
+</div>
 
 <div id="all-player-div">
     <h1>Players</h1>
@@ -78,7 +81,26 @@
     <button id="cancelMoveButton" onclick="cancelMoving()" style="display: none;">Cancel moving</button>
 </div>
 
-<script src="../src/index.js"></script>
+<div id="matches-div" style="display: none;">
+    <h1>Matches</h1>
+    <button type="button" id="matches-draw-all">Draw matches - all</button>
+    <button type="button" id="matches-draw-compensatory">Draw matches - compensatory</button>
+    <h2>All matches:</h2>
+    <div id="matches-unplayed"></div>
+    <!-- <h2>Played matches:</h2>
+    <div id="matches-played"></div> -->
+</div>
+
+<div id="order-div" style="display: none;">
+    <h1>Actual order</h1>
+</div>
+
+    <!-- Include the bundled JavaScript file from the npm package -->
+    <script src="../node_modules/matchdraw/dist/bundle.js"></script>
+    <script>
+        let x = MatchDraw.RESULT_TEMPLATES;
+    </script>
+    <script src="../src/index.js"></script>
 
 </body>
 </html>

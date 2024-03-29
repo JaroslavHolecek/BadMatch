@@ -1,3 +1,7 @@
+
+var MD_LocalTournament = null;
+let overall_singletons = [];
+
 const tournament_localStorage_prefix = "BT_";
 function emptyTournamentValues(){
     return {
@@ -21,6 +25,38 @@ var toMovePlayer = -1;
 
 var tournament = emptyTournamentValues();
 
+document.getElementById('btn-show-players').addEventListener('click', function(event) {
+    event.preventDefault();
+    document.getElementById('all-player-div').style.display = '';
+    document.getElementById('matches-div').style.display = 'none';
+    document.getElementById('order-div').style.display = 'none';    
+});
+
+document.getElementById('btn-show-matches').addEventListener('click', function(event) {
+    event.preventDefault();
+    document.getElementById('all-player-div').style.display = 'none';
+    document.getElementById('matches-div').style.display = '';
+    document.getElementById('order-div').style.display = 'none';
+});
+
+document.getElementById('btn-show-order').addEventListener('click', function(event) {
+    event.preventDefault();
+    document.getElementById('all-player-div').style.display = 'none';
+    document.getElementById('matches-div').style.display = 'none';
+    document.getElementById('order-div').style.display = '';
+
+    let orderDiv = document.getElementById("order-div");
+    orderDiv.innerHTML = "<h1>Actual order</h1>";
+
+    MD_LocalTournament.sortResults();
+    MD_LocalTournament.results.forEach((result, index) => {
+        let onePart = document.createElement("p");
+        onePart.innerHTML = `${index+1}# ${result}`;
+        orderDiv.appendChild(onePart);
+    });
+
+});
+
 document.getElementById('tournament-confirm-settings').addEventListener('click', function(event) {
     event.preventDefault();
     handleTournamentConfirmation();
@@ -31,9 +67,14 @@ document.getElementById('tournament-edit-settings').addEventListener('click', fu
     handleEditTournamentSettings();
 });
 
-document.getElementById('tournament-draw').addEventListener('click', function(event) {
+document.getElementById('matches-draw-all').addEventListener('click', function(event) {
     event.preventDefault();
     handleTournamentDraw();
+});
+
+document.getElementById('matches-draw-compensatory').addEventListener('click', function(event) {
+    event.preventDefault();
+    handleTournamentDraw(true);
 });
 
 document.getElementById('player-add').addEventListener('click', function(event) {
@@ -67,10 +108,70 @@ window.addEventListener('load', function() {
 });
 
 
-function handleTournamentDraw(){
+function handleTournamentDraw(compensatory=false){
+    if(!MD_LocalTournament){
+        MD_LocalTournament = new MatchDraw.Tournament_Swiss_Radon(
+            1,
+            tournament.informations.name,
+            tournament.informations.date,
+            tournament.informations.round,
+            []
+        );
+        tournament.players.forEach((player, index) => {
+            MD_LocalTournament.addParticipant(new MatchDraw.Participant_Radon(
+                player.id, player.name, player.club, player.birthyear));
+        });
+    }
+    let draw_singletons, draw_matches;
+    if(compensatory){
+        ({draw_singletons, draw_matches } = MD_LocalTournament.draw_compensatory(overall_singletons));
+    }else{
+        ({draw_singletons, draw_matches } = MD_LocalTournament.draw(overall_singletons));
+    }
+    
+    overall_singletons.push(...draw_singletons);
 
+
+    let matches_unplayed_div = document.getElementById("matches-unplayed");
+    draw_matches.forEach(match => {
+        var formId = `match-form-${match.md_id}`;
+        var matchDiv = document.createElement('div');
+        matchDiv.classList.add('match-div');
+        matchDiv.innerHTML = `
+            <span><p>${match.participants[0].md_name} (${match.participants[0].md_id})</p></span>
+            <span><p>${match.participants[1].md_name} (${match.participants[1].md_id})</p></span>                    
+        `;
+        
+
+        var form = document.createElement("form");
+        form.classList.add("match-score");
+        form.innerHTML = `
+            <input type="number" id="match_0_0" name="0_0" required>
+            <input type="number" id="match_0_1" name="0_1" required> </br>
+
+            <input type="number" id="match_1_0" name="1_0" required>
+            <input type="number" id="match_1_1" name="1_1" required> </br>
+            
+            <button type="submit" class="btn-match">Confirm Score</button>
+        
+        `;
+
+        matchDiv.appendChild(form);
+        matches_unplayed_div.insertBefore(matchDiv, matches_unplayed_div.firstChild);
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+            const formData = new FormData(form); // Get form data
+
+            var MD_match = MD_LocalTournament.getMatch_byMDid(match.md_id);
+            MD_match.score = [[parseInt(formData.get('0_0')), parseInt(formData.get('0_1'))],
+                            [parseInt(formData.get('1_0')), parseInt(formData.get('1_1'))]];
+            MD_LocalTournament.add_matchToResults(MD_match);
+            form.classList.add("score-stored");
+        });
+        
+    });
 }
-
 
 // Function to retrieve items from localStorage by prefix
 function getTournamentsByPrefix(prefix) {
