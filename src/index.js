@@ -48,12 +48,17 @@ document.getElementById('btn-show-order').addEventListener('click', function(eve
     let orderDiv = document.getElementById("order-div");
     orderDiv.innerHTML = "<h1>Actual order</h1>";
 
-    MD_LocalTournament.sortResults();
-    MD_LocalTournament.results.forEach((result, index) => {
-        let onePart = document.createElement("p");
-        onePart.innerHTML = `${index+1}# ${result}`;
-        orderDiv.appendChild(onePart);
-    });
+    if (MD_LocalTournament){
+        MD_LocalTournament.results.forEach(rslt => {rslt.result = structuredClone(MD_LocalTournament.result_template.template)});
+        MD_LocalTournament.matches.forEach(mtch => {MD_LocalTournament.add_matchToResults(mtch)});
+        MD_LocalTournament.sortResults();
+        MD_LocalTournament.results.forEach((result, index) => {
+            let onePart = document.createElement("p");
+            onePart.innerHTML = `${index+1}# ${result}`;
+            orderDiv.appendChild(onePart);
+        }); 
+    }
+
 
 });
 
@@ -166,8 +171,13 @@ function handleTournamentDraw(compensatory=false){
             var MD_match = MD_LocalTournament.getMatch_byMDid(match.md_id);
             MD_match.score = [[parseInt(formData.get('0_0')), parseInt(formData.get('0_1'))],
                             [parseInt(formData.get('1_0')), parseInt(formData.get('1_1'))]];
-            MD_LocalTournament.add_matchToResults(MD_match);
+            // MD_LocalTournament.add_matchToResults(MD_match);
             form.classList.add("score-stored");
+        });
+
+        form.addEventListener('change', function(event) {
+            event.preventDefault(); // Prevent form submission
+                form.classList.remove("score-stored");          
         });
         
     });
