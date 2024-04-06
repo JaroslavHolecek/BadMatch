@@ -166,6 +166,7 @@ function renderMatches(){
 
 
 function handleTournamentDraw(compensatory=false){
+    if (tournament.players.length < 2){return;}
     if(!MD_LocalTournament){
         MD_LocalTournament = new MatchDraw.Tournament_Swiss_Radon(
             1,
@@ -187,7 +188,7 @@ function handleTournamentDraw(compensatory=false){
         }
         
     }else{
-        ({draw_singletons, draw_matches } = MD_LocalTournament.draw(overall_singletons));
+            ({draw_singletons, draw_matches } = MD_LocalTournament.draw(overall_singletons));       
     }
     
     overall_singletons.push(...draw_singletons);

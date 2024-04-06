@@ -146,3 +146,8 @@ input, select{
 .score-stored input{
     background-color: #ddd;
 }
+
+.btn-match-remove{
+    position: absolute;
+    left: 6%;
+}
