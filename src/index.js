@@ -49,8 +49,8 @@ document.getElementById('btn-show-order').addEventListener('click', function(eve
     orderDiv.innerHTML = "<h1>Actual order</h1>";
 
     if (MD_LocalTournament){
-        MD_LocalTournament.results.forEach(rslt => {rslt.result = structuredClone(MD_LocalTournament.result_template.template)});
-        MD_LocalTournament.matches.forEach(mtch => {MD_LocalTournament.add_matchToResults(mtch)});
+        MD_LocalTournament.results.forEach(rslt => {rslt.result = structuredClone(MD_LocalTournament.result_template.template);});
+        MD_LocalTournament.matches.forEach(mtch => { if(mtch.score !== null){MD_LocalTournament.add_matchToResults(mtch);}});
         MD_LocalTournament.sortResults();
         MD_LocalTournament.results.forEach((result, index) => {
             let onePart = document.createElement("p");
@@ -112,6 +112,58 @@ window.addEventListener('load', function() {
     renderTournament(tournament);
 });
 
+function renderMatches(){
+    let matches_unplayed_div = document.getElementById("matches-unplayed");
+    matches_unplayed_div.innerHTML = "";
+
+    MD_LocalTournament.matches.forEach(match => {
+        var formId = `match-form-${match.md_id}`;
+        var matchDiv = document.createElement('div');
+        matchDiv.classList.add('match-div');
+        matchDiv.innerHTML = `
+            <span><p>${match.participants[0].md_name} (${match.participants[0].md_id})</p></span>
+            <span><p>${match.participants[1].md_name} (${match.participants[1].md_id})</p></span>                    
+        `;
+        
+
+        var form = document.createElement("form");
+        form.classList.add("match-score");
+        form.innerHTML = `
+            <input type="number" id="match_0_0" name="0_0" value="${match.score === null ? '': match.score[0][0]}" required>
+            <input type="number" id="match_0_1" name="0_1" value="${match.score === null ? '': match.score[0][1]}" required> </br>
+
+            <input type="number" id="match_1_0" name="1_0" value="${match.score === null ? '': match.score[1][0]}" required>
+            <input type="number" id="match_1_1" name="1_1" value="${match.score === null ? '': match.score[1][1]}" required> </br>
+            
+            <button type="submit" class="btn-match">Confirm Score</button>
+            <button class="btn-match-remove" onclick="removeMatch(${match.md_id})">Remove match</button>        
+        `;
+        if(match.score !== null){
+            form.classList.add("score-stored");
+        }
+
+        matchDiv.appendChild(form);
+        matches_unplayed_div.insertBefore(matchDiv, matches_unplayed_div.firstChild);
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+            const formData = new FormData(form); // Get form data
+
+            var MD_match = MD_LocalTournament.getMatch_byMDid(match.md_id);
+            MD_match.score = [[parseInt(formData.get('0_0')), parseInt(formData.get('0_1'))],
+                            [parseInt(formData.get('1_0')), parseInt(formData.get('1_1'))]];
+            // MD_LocalTournament.add_matchToResults(MD_match);
+            form.classList.add("score-stored");
+        });
+
+        form.addEventListener('change', function(event) {
+            event.preventDefault(); // Prevent form submission
+                form.classList.remove("score-stored");          
+        });
+        
+    });
+}
+
 
 function handleTournamentDraw(compensatory=false){
     if(!MD_LocalTournament){
@@ -136,51 +188,18 @@ function handleTournamentDraw(compensatory=false){
     
     overall_singletons.push(...draw_singletons);
 
+    renderMatches();    
+}
 
-    let matches_unplayed_div = document.getElementById("matches-unplayed");
-    draw_matches.forEach(match => {
-        var formId = `match-form-${match.md_id}`;
-        var matchDiv = document.createElement('div');
-        matchDiv.classList.add('match-div');
-        matchDiv.innerHTML = `
-            <span><p>${match.participants[0].md_name} (${match.participants[0].md_id})</p></span>
-            <span><p>${match.participants[1].md_name} (${match.participants[1].md_id})</p></span>                    
-        `;
-        
+function removeMatch(matchID){
+    let mtch_id = MD_LocalTournament.matches.findIndex(mtch => mtch.md_id === matchID);
+    if(mtch_id !== -1){
+        let mtch = MD_LocalTournament.matches[mtch_id];
+        overall_singletons.push(...mtch.participants);
 
-        var form = document.createElement("form");
-        form.classList.add("match-score");
-        form.innerHTML = `
-            <input type="number" id="match_0_0" name="0_0" required>
-            <input type="number" id="match_0_1" name="0_1" required> </br>
-
-            <input type="number" id="match_1_0" name="1_0" required>
-            <input type="number" id="match_1_1" name="1_1" required> </br>
-            
-            <button type="submit" class="btn-match">Confirm Score</button>
-        
-        `;
-
-        matchDiv.appendChild(form);
-        matches_unplayed_div.insertBefore(matchDiv, matches_unplayed_div.firstChild);
-
-        form.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent form submission
-            const formData = new FormData(form); // Get form data
-
-            var MD_match = MD_LocalTournament.getMatch_byMDid(match.md_id);
-            MD_match.score = [[parseInt(formData.get('0_0')), parseInt(formData.get('0_1'))],
-                            [parseInt(formData.get('1_0')), parseInt(formData.get('1_1'))]];
-            // MD_LocalTournament.add_matchToResults(MD_match);
-            form.classList.add("score-stored");
-        });
-
-        form.addEventListener('change', function(event) {
-            event.preventDefault(); // Prevent form submission
-                form.classList.remove("score-stored");          
-        });
-        
-    });
+        MD_LocalTournament.matches.splice(mtch_id, 1);
+        renderMatches();
+    }
 }
 
 // Function to retrieve items from localStorage by prefix
