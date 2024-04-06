@@ -182,6 +182,7 @@ function handleTournamentDraw(compensatory=false){
     let draw_singletons, draw_matches;
     if(compensatory){
         ({draw_singletons, draw_matches } = MD_LocalTournament.draw_compensatory(overall_singletons));
+        overall_singletons = []; /* clear singletons - not drawd players will be added below */
     }else{
         ({draw_singletons, draw_matches } = MD_LocalTournament.draw(overall_singletons));
     }
