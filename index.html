@@ -83,10 +83,11 @@
 
 <div id="matches-div" style="display: none;">
     <h1>Matches</h1>
-    <button type="button" id="matches-draw-all">Draw matches - all</button>
-    <button type="button" id="matches-draw-compensatory">Draw matches - compensatory</button>
+    <button type="button" id="matches-draw">Draw matches</button>
+    <h2>Overall singletons:</h2>
+    <div id="matches-singletons"></div>
     <h2>All matches:</h2>
-    <div id="matches-unplayed"></div>
+    <div id="matches-all_matches"></div>
     <!-- <h2>Played matches:</h2>
     <div id="matches-played"></div> -->
 </div>
@@ -98,7 +99,7 @@
     <!-- Include the bundled JavaScript file from the npm package -->
     <script src="node_modules/matchdraw/dist/bundle.js"></script>
     <script>
-        let x = MatchDraw.RESULT_TEMPLATES;
+        let x = MatchDraw.Participant_Radon; /* Just test of correct including */ 
     </script>
     <script src="src/index.js"></script>
 
