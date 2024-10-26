@@ -11,7 +11,7 @@ const emptyTournamentValues = {
 
 function tournamentLocalStorageKey(trnmt){
     let date = trnmt.date.toISOString().substring(0, 10);
-    return `${tournament_localStorage_prefix}${trnmt.md_name}_${trnmt.in_year_number}_${date}`;
+    return `${tournament_localStorage_prefix}${trnmt.name}_${trnmt.in_year_number}_${date}`;
 }
 
 var toMovePlayer = -1;
@@ -90,7 +90,7 @@ function updateTournament(edit=false){
 window.addEventListener('load', updateTournament);
 
 function matchValue_toHTMLString(match, set, player){
-    return match.isUnplayed() ? '' : match.md_score.md_values[set].md_values[player];
+    return match.isUnplayed() ? '' : match.score.md_values[set].md_values[player];
 }
 
 function renderMatches(){
@@ -100,19 +100,19 @@ function renderMatches(){
     let singletons_div = document.getElementById("matches-singletons");
     singletons_div.innerHTML = `<p>
     ${MD_LocalTournament.overall_singletons.map(sngl => {
-        return `${sngl.md_name} (${sngl.md_id})`;
+        return `${sngl.name} (${sngl.id})`;
     }).join(", ")}
     </p>`;
 
     let matches_div = document.getElementById("matches-all_matches");
     matches_div.innerHTML = "";
 
-    MD_LocalTournament.md_matches.forEach(match => {
+    MD_LocalTournament.matches.forEach(match => {
         var matchDiv = document.createElement('div');
         matchDiv.classList.add('match-div');
         matchDiv.innerHTML = `
-            <span><p>${match.md_participants[0].md_name} (${match.md_participants[0].md_id})</p></span>
-            <span><p>${match.md_participants[1].md_name} (${match.md_participants[1].md_id})</p></span>                    
+            <span><p>${match.participants[0].name} (${match.participants[0].id})</p></span>
+            <span><p>${match.participants[1].name} (${match.participants[1].id})</p></span>                    
         `;
         
 
@@ -139,7 +139,7 @@ function renderMatches(){
             event.preventDefault(); // Prevent form submission
             const formData = new FormData(form); // Get form data
 
-            var MD_match = MD_LocalTournament.getMatch_byMDid(match.md_id);                
+            var MD_match = MD_LocalTournament.getMatch_byMDid(match.id);                
             MD_LocalTournament.setScoreValuesOfMatch( MD_match,
                 [[parseInt(formData.get('0_0')), parseInt(formData.get('0_1'))],
                 [parseInt(formData.get('1_0')), parseInt(formData.get('1_1'))]]);
@@ -255,7 +255,7 @@ function renderTournament(edit=false){
 function fillTournamentInfo(){
     let name, date, round;
     if(MD_LocalTournament){
-        name = MD_LocalTournament.md_name;
+        name = MD_LocalTournament.name;
         date = MD_LocalTournament.date;
         round = MD_LocalTournament.in_year_number;
     }else{
@@ -291,7 +291,7 @@ function handleTournamentConfirmation() {
     var roundNumber = document.getElementById('form-tournament-round').value;
 
     if (MD_LocalTournament &&
-        MD_LocalTournament.md_name === tournamentName &&
+        MD_LocalTournament.name === tournamentName &&
         MD_LocalTournament.date.getTime() === tournamentDate.getTime() &&
         MD_LocalTournament.in_year_number === roundNumber
     ){
@@ -299,9 +299,9 @@ function handleTournamentConfirmation() {
         return;
     }
 
-    MD_LocalTournament = new MatchDraw.Tournament_Swiss_Radon({            
-        md_id:1,
-        md_name: tournamentName,
+    MD_LocalTournament = new MatchDraw.Tournament_Elo_Radon({            
+        id:1,
+        name: tournamentName,
         date: tournamentDate,
         in_year_number: roundNumber
     });
@@ -347,8 +347,8 @@ function handleAddPlayer(){
 
     MD_LocalTournament.addParticipant(
         new MatchDraw.Participant_Radon({
-            md_id: playerId,
-            md_name: playerName,
+            id: playerId,
+            name: playerName,
             club: playerClub,
             birth: new Date(playerBirthyear)
         })
@@ -372,7 +372,7 @@ function handleAddPlayer(){
 function removePlayer(index){
     var result = window.confirm("Are you sure you want to remove player?");
     if (result === true) {
-        MD_LocalTournament.md_participants_results.splice(index, 1); 
+        MD_LocalTournament.participants_results.splice(index, 1); 
 
         storeLocalStoredTournament();
         renderPlayerList();
@@ -390,8 +390,8 @@ function movePlayerHere(index){
     if (index === toMovePlayer){return;} /* same position */
     if(index > toMovePlayer){index--;} /* player will be removed from position before the goal one */
 
-    var player = MD_LocalTournament.md_participants_results.splice(toMovePlayer, 1)[0];
-    MD_LocalTournament.md_participants_results.splice(index, 0, player); 
+    var player = MD_LocalTournament.participants_results.splice(toMovePlayer, 1)[0];
+    MD_LocalTournament.participants_results.splice(index, 0, player); 
 
     storeLocalStoredTournament();
     renderPlayerList();
@@ -405,7 +405,7 @@ function cancelMoving(){
 // Retrieve and render player information from local storage
 function renderPlayerList(with_move_button=false) {
     if(!MD_LocalTournament){return;}
-    let players = MD_LocalTournament.md_participants_results.map(pr => {return pr.md_participant;});
+    let players = MD_LocalTournament.participants_results.map(pr => {return pr.participant;});
 
     function includeMoveButton(index, parent){
         if(with_move_button && !(index == toMovePlayer || index == toMovePlayer+1)){
@@ -443,7 +443,7 @@ function renderPlayerList(with_move_button=false) {
                 <p>${index+1}.</p>
             </div>
             <div class="info-rest">
-                <p>${player.md_name} (${player.md_id})</p>
+                <p>${player.name} (${player.id})</p>
                 <p>${player.birth.getFullYear()}</p>
                 <p>${player.club}</p>
             </div>
@@ -472,7 +472,7 @@ function renderOrder(){
     }
 
     MD_LocalTournament.sortResults();
-    MD_LocalTournament.md_participants_results.forEach((pr, index) => {
+    MD_LocalTournament.participants_results.forEach((pr, index) => {
         let onePart = document.createElement("p");
         onePart.innerHTML = `${index+1}# ${pr.toString()}`;
         orderDiv.appendChild(onePart);

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Manager</title>
+    <link rel="stylesheet" href="style/style2.css">
+    <!-- Include the bundled JavaScript file from the npm package -->
+    <script src="node_modules/matchdraw/dist/bundle.js"></script>
+    <script>
+        let x = MatchDraw.Participant_Elo_Radon; /* Just test of correct including */ 
+    </script>
+    <!-- <script src="src/index.js"></script> -->
+
+    <script>
+        let tournament = null;
+    </script>
+</head>
+
+<body>
+    <h1>Tournament Manager</h1>
+
+    <button type="button" onclick="saveTournamentToFile()">Save Tournament to File</button>
+    <button type="button" onclick="loadTournamentFromFile()">Load Tournament from File</button>
+    <button type="button" onclick="saveTournamentToLocalStorage()">Save Tournament to Local Storage</button>
+    <button type="button" onclick="loadTournamentFromLocalStorage()">Load Tournament from Local Storage</button>
+
+    <script>
+        function saveTournamentToFile() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const dataStr = JSON.stringify(tournament);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "tournament.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function loadTournamentFromFile() {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = ".json";
+            fileInput.onchange = function (event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const data = JSON.parse(event.target.result);
+                    tournament = MatchDraw.Tournament_Elo_Radon.fromJSON(data);
+                    displayParticipants();
+                    clearAndRedrawMatches();
+                };
+                reader.readAsText(file);
+            };
+            fileInput.click();
+        }
+
+        function saveTournamentToLocalStorage() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const dataStr = JSON.stringify(tournament);
+            localStorage.setItem("JC_tournament", dataStr);
+        }
+
+        function loadTournamentFromLocalStorage() {
+            const dataStr = localStorage.getItem("JC_tournament");
+            if (dataStr) {
+                const data = JSON.parse(dataStr);
+                tournament = MatchDraw.Tournament_Elo_Radon.fromJSON(data);
+                displayParticipants();
+                clearAndRedrawMatches();
+            } else {
+                alert("No tournament data found in local storage.");
+            }
+        }
+
+        setInterval(saveTournamentToLocalStorage, 300000); // Save to local storage every 5 minutes
+    </script>
+
+
+    <form id="tournamentForm">
+        <label for="tournamentId">Tournament ID:</label>
+        <input type="number" id="tournamentId" name="tournamentId" required><br><br>
+
+        <label for="tournamentName">Tournament Name:</label>
+        <input type="text" id="tournamentName" name="tournamentName" required><br><br>
+
+        <label for="tournamentDate">Tournament Date:</label>
+        <input type="date" id="tournamentDate" name="tournamentDate" required><br><br>
+
+        <label for="inYearNumber">In Year Number:</label>
+        <input type="number" id="inYearNumber" name="inYearNumber" required><br><br>
+
+        <button type="button" onclick="createTournament()">Create Tournament</button>
+    </form>
+
+    <script>
+        function createTournament() {
+            const id = document.getElementById('tournamentId').value;
+            const name = document.getElementById('tournamentName').value;
+            const date = document.getElementById('tournamentDate').value;
+            const inYearNumber = document.getElementById('inYearNumber').value;
+
+            tournament = new MatchDraw.Tournament_Elo_Radon({
+                id: parseInt(id),
+                name: name,
+                date: new Date(date),
+                in_year_number: parseInt(inYearNumber)
+            });
+
+            console.log(tournament);
+        }
+    </script>
+
+    <input type="file" id="fileInput" accept=".json">
+    <button type="button" onclick="loadFile()">Load File</button>
+
+    <script>
+        function loadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                tournament.clubs = [];
+                tournament.participants = [];
+                tournament.participants_results = [];
+
+                const data = JSON.parse(event.target.result);
+
+                data.clubs.forEach(club => {
+                    const newClub = new MatchDraw.MD_Club({ id: club.id, name: club.clubName });
+                    tournament.addClub(newClub);
+                });
+
+                data.players.forEach(player => {
+                    const club = tournament.clubs.find(clb => clb.id == player.club_id);
+                    const newParticipant = new MatchDraw.Participant_Elo_Radon({
+                        id: player.id,
+                        name: player.first_name,
+                        second_name: player.second_name,
+                        club: club,
+                        birth: new Date(player.birthdate),
+                    });
+                    tournament.addParticipant(newParticipant);
+                });
+
+
+                data.players.forEach(player => {
+                    const participant = tournament.participants.find(prtcpnt => prtcpnt.id == player.id);
+                    if (participant) {
+                        tournament.addParticipantResult(participant, { value: player.elo });
+                    }
+                });
+            };
+
+            displayParticipants();
+            if (file) {
+                reader.readAsText(file);
+            } else {
+                alert("Please select a file.");
+            }
+        }
+    </script>
+
+    <h2>Participants</h2>
+    <h2>Add Participant</h2>
+    <form id="addParticipantForm">
+        <label for="participantId">Participant ID:</label>
+        <input type="number" id="participantId" name="participantId" required><br><br>
+
+        <label for="participantFirstName">First Name:</label>
+        <input type="text" id="participantFirstName" name="participantFirstName" required><br><br>
+
+        <label for="participantSecondName">Second Name:</label>
+        <input type="text" id="participantSecondName" name="participantSecondName" required><br><br>
+
+        <label for="participantClub">Club:</label>
+        <input type="text" id="participantClub" name="participantClub" required><br><br>
+
+        <label for="participantBirthdate">Birthdate:</label>
+        <input type="date" id="participantBirthdate" name="participantBirthdate" required><br><br>
+
+        <label for="participantElo">ELO:</label>
+        <input type="number" id="participantElo" name="participantElo" required><br><br>
+
+        <button type="button" onclick="addParticipant()">Add Participant</button>
+    </form>
+
+    <button type="button" onclick="displayParticipants()">Refresh Participant List</button>
+
+    <script>
+        function addParticipant() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const id = document.getElementById('participantId').value;
+            const firstName = document.getElementById('participantFirstName').value;
+            const secondName = document.getElementById('participantSecondName').value;
+            const clubName = document.getElementById('participantClub').value;
+            const birthdate = document.getElementById('participantBirthdate').value;
+            const elo = document.getElementById('participantElo').value;
+
+            let club = tournament.clubs.find(clb => clb.name === clubName);
+            if (!club) {
+                club = new MatchDraw.MD_Club({ id: tournament.clubs.length + 11, name: clubName });
+                tournament.addClub(club);
+            }
+
+            const newParticipant = new MatchDraw.Participant_Elo_Radon({
+                id: parseInt(id),
+                name: firstName,
+                second_name: secondName,
+                club: club,
+                birth: new Date(birthdate),
+            });
+
+            tournament.addParticipant(newParticipant);
+            tournament.addParticipantResult(newParticipant, { value: parseInt(elo) });
+
+            displayParticipants();
+        }
+
+    </script>
+    <table id="participantsTable" border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Birthdate</th>
+                <th>Club</th>
+                <th>ELO</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Participants will be listed here -->
+        </tbody>
+    </table>
+
+    <script>
+        function displayParticipants() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            tournament.sortResults();
+            const tableBody = document.getElementById('participantsTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            tournament.participants_results.forEach(participant_res => {
+                const row = tableBody.insertRow();
+                const cellId = row.insertCell(0);
+                const cellName = row.insertCell(1);
+                const cellBirthdate = row.insertCell(2);
+                const cellClub = row.insertCell(3);
+                const cellElo = row.insertCell(4);
+
+                cellId.textContent = participant_res.participant.id;
+                cellName.textContent = `${participant_res.participant.name} ${participant_res.participant.second_name}`;
+                const birthdate = participant_res.participant.birth;
+                const formattedDate = `${birthdate.getDate().toString().padStart(2, '0')}.${(birthdate.getMonth() + 1).toString().padStart(2, '0')}.${birthdate.getFullYear()}`;
+                cellBirthdate.textContent = formattedDate;
+                cellClub.textContent = participant_res.participant.club ? participant_res.participant.club.name : 'N/A';
+                cellElo.textContent = participant_res.result.value.toFixed(2);
+            });
+        }
+
+        // Call displayParticipants after loading file or creating tournament
+        document.getElementById('fileInput').addEventListener('change', displayParticipants);
+        document.getElementById('tournamentForm').addEventListener('submit', displayParticipants);
+    </script>
+
+
+    <h2>Matches</h2>
+    <button type="button" onclick="displaySingletons()">Show Singletons</button>
+    <div id="singletonsContainer"></div>
+    <script>
+        function displaySingletons() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const singletonsContainer = document.getElementById('singletonsContainer');
+            singletonsContainer.innerHTML = ''; // Clear existing content
+
+            const singletons = tournament.overall_singletons;
+            const singletonsText = singletons.map(player => `(${player.id}) ${player.name}`).join(', ');
+
+            const singletonsDiv = document.createElement('div');
+            singletonsDiv.textContent = "Hráči bez soupeře: " + singletonsText;
+            singletonsContainer.appendChild(singletonsDiv);
+        }
+    </script>
+    <button type="button" onclick="clearAndRedrawMatches()">Refresh Matches</button>
+    <button type="button" onclick="drawNextMatches()">Draw Next Matches</button>
+
+    <script>
+        function drawNextMatches() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            tournament.draw();
+            clearAndRedrawMatches();
+        }
+    </script>
+    <div id="matchesContainer"></div>
+
+    <script>
+        function clearAndRedrawMatches() {
+            const matchesContainer = document.getElementById('matchesContainer');
+            matchesContainer.innerHTML = ''; // Clear existing matches
+
+            displayUnplayedMatches(); // Redraw unplayed matches
+            displayPlayedOutMatches(); // Redraw played out matches
+            displaySingletons(); // Redraw singletons
+        }
+
+        function displayUnplayedMatches() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const matchesContainer = document.getElementById('matchesContainer');
+
+            tournament.getMatches_unplayed().forEach((match, index) => {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'match';
+
+                const player1 = match.participants[0];
+                const player2 = match.participants[1];
+
+                const matchID = match.id;
+
+                matchDiv.innerHTML = `
+                    <h3>Zápas ${matchID} Kolo ${tournament.number_of_played_round}</h3>
+                    <p class="big_font">${player1.name} ${player1.second_name} vs ${player2.name} ${player2.second_name}</p>
+                    <p>Set 1</p>
+                    <div class="set-inputs">                        
+                        <input type="number" id="player1Score1_${matchID}" name="player1Score1_${matchID}" required>
+                        <input type="number" id="player2Score1_${matchID}" name="player2Score1_${matchID}" required>
+                    </div>
+                    <p>Set 2</p>
+                    <div class="set-inputs">
+                        <input type="number" id="player1Score2_${matchID}" name="player1Score2_${matchID}" required>
+                        <input type="number" id="player2Score2_${matchID}" name="player2Score2_${matchID}" required>
+                    </div>
+                    <button type="button" onclick="storeMatchResult(${matchID})">Store Result</button>
+                `;
+
+                matchesContainer.appendChild(matchDiv);
+            });
+        }
+
+        function displayPlayedOutMatches() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const matchesContainer = document.getElementById('matchesContainer');
+
+            tournament.getMatches_playedOut().forEach((match, index) => {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'match played';
+
+                const player1 = match.participants[0];
+                const player2 = match.participants[1];
+
+                const matchID = match.id;
+                const elos = match.elo_change().map(elo => elo.toFixed(2));
+
+                matchDiv.innerHTML = `
+                <h3>Zápas ${matchID} Kolo -</h3>
+                <p class="big_font">${player1.name} ${player1.second_name} vs ${player2.name} ${player2.second_name}</p>
+                <p>Set 1</p>
+                <div class="set-inputs">                    
+                    <input type="number" id="player1Score1_${matchID}" name="player1Score1_${matchID}" value="${match.score.md_values[0].md_values[0]}" placeholder="Set 1" required>
+                    <input type="number" id="player2Score1_${matchID}" name="player2Score1_${matchID}" value="${match.score.md_values[0].md_values[1]}" placeholder="Set 1" required>
+                </div>
+                <p>Set 2</p>
+                <div class="set-inputs">                    
+                    <input type="number" id="player1Score2_${matchID}" name="player1Score2_${matchID}" value="${match.score.md_values[1].md_values[0]}" placeholder="Set 2" required>
+                    <input type="number" id="player2Score2_${matchID}" name="player2Score2_${matchID}" value="${match.score.md_values[1].md_values[1]}" placeholder="Set 2" required>
+                </div>
+                <p>ELO Change: ${elos[0]} / ${elos[1]}</p>
+                <button type="button" onclick="storeMatchResult(${matchID})">Store Result</button>
+            `;
+
+                matchesContainer.appendChild(matchDiv);
+            });
+        }
+
+
+        function storeMatchResult(matchIndex) {
+            const player1Score1 = document.getElementById(`player1Score1_${matchIndex}`).value;
+            const player1Score2 = document.getElementById(`player1Score2_${matchIndex}`).value;
+            const player2Score1 = document.getElementById(`player2Score1_${matchIndex}`).value;
+            const player2Score2 = document.getElementById(`player2Score2_${matchIndex}`).value;
+
+            const match = tournament.matches.find(m => m.id === matchIndex);
+            if (!match.isUnplayed()) {
+                let elos = match.elo_change();
+                console.log(`Reverting ELO change: ${elos}`);
+                tournament.participants_results.find(pr => pr.participant.id === match.participants[0].id).result.value -= elos[0];
+                tournament.participants_results.find(pr => pr.participant.id === match.participants[1].id).result.value -= elos[1];
+            }
+            tournament.setScoreValuesOfMatch(match, [[parseInt(player1Score1), parseInt(player2Score1)], [parseInt(player1Score2), parseInt(player2Score2)]]);
+
+            tournament.add_matchToResults(match);
+
+            console.log(`Match ${matchIndex} results stored.`);
+        }
+
+    </script>
+
+    <section id="print_result_section">
+        <button type="button" onclick="displayMatchesPrintable()">Refresh matches - printable</button>
+
+        <div id="print_matchesContainer"></div>
+
+    </section>
+    <script>
+            function displayMatchesPrintable() {
+                if (!tournament) {
+                    alert("No tournament created yet.");
+                    return;
+                }
+
+                const printResultSection = document.getElementById('print_matchesContainer');
+                printResultSection.innerHTML = ''; // Clear existing content
+
+                tournament.getMatches_playedOut().forEach(match => {
+                    const player1 = match.participants[0];
+                    const player2 = match.participants[1];
+                    const elos = match.elo_change().map(elo => elo.toFixed(2));
+                    const initialElo1 = (player1.elo - elos[0]).toFixed(2);
+                    const initialElo2 = (player2.elo - elos[1]).toFixed(2);
+
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = 'match printable';
+
+                    matchDiv.innerHTML = `
+                        <p>
+                            (${player1.id}) ${player1.name} ${player1.second_name} [ELO: ${initialElo1}] 
+                            vs 
+                            (${player2.id}) ${player2.name} ${player2.second_name} [ELO: ${initialElo2}]
+                            <br>
+                            Result: ${match.score.md_values[0].md_values[0]}-${match.score.md_values[0].md_values[1]}, ${match.score.md_values[1].md_values[0]}-${match.score.md_values[1].md_values[1]}
+                            <br>
+                            ELO Change: ${elos[0]} / ${elos[1]}
+                        </p>
+                    `;
+
+                    printResultSection.appendChild(matchDiv);
+                });
+            }
+    </script>
+
+</body>
+
+</html> 

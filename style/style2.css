@@ -1,0 +1,143 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+    text-align: center;
+}
+
+h1, h2 {
+    color: #4CAF50;
+}
+
+button, input[type="submit"] {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 10px;
+}
+
+button:hover, input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+label {
+    font-weight: bold;
+}
+
+input, select {
+    padding: 10px;
+    width: 100%;
+    max-width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Table for Participants */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f4f4f4;
+    color: black;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Matches Section */
+#matchesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.match {
+    width: 45%;
+    padding: 10px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+/* Inputs for Sets next to each other */
+.set-inputs {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.set-inputs input {
+    width: 45%; /* Inputs take up 45% of the space to fit side by side */
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Played Matches */
+.match.played {
+    background-color: #e0f7e0;
+    border: 1px solid #4CAF50;
+}
+
+.big_font {
+    font-size: 1.5em;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background-color: white;
+        color: black;
+    }
+
+    #matchesContainer {
+        display: table;
+        width: 100%;
+    }
+
+    .match {
+        display: table-cell;
+        width: 45%;
+        padding: 10px;
+        border: 1px solid black;
+        vertical-align: top;
+        page-break-inside: avoid;
+    }
+
+    h1, h2 {
+        color: black;
+    }
+
+    button, input[type="submit"] {
+        display: none; /* Hide buttons for print */
+    }
+}

@@ -14,7 +14,6 @@
         <div class="info">
             <label for="form-tournament-select">Load:</label>
             <select id="form-tournament-select" name="form-tournament-select">
-
             </select>
 
             <label for="form-tournament-name">Name:</label>
@@ -44,56 +43,57 @@
             <button type="button" id="tournament-edit-settings">Edit Tournament</button>
         </div>
     </div>
-</div>
 
-<div id="btn-show-container">
-    <button type="button" class="btn-show" id="btn-show-players">Players</button>
-    <button type="button" class="btn-show" id="btn-show-matches">Matches</button>
-    <button type="button" class="btn-show" id="btn-show-order">Order</button>
-</div>
 
-<div id="all-player-div">
-    <h1>Players</h1>
-    <h2>Add player:</h2>
-    <form id="all-player-form" class="info-div">
-        <div class="info">
-            <label for="form-add-player-name">Name:</label>
-            <input type="text" id="form-add-player-name" name="form-add-player-name" required>
-            
-            <label for="form-add-player-id">ID:</label>
-            <input type="number" id="form-add-player-id" name="form-add-player-id" required>
-            
-            <label for="form-add-player-birthyear">Birth Year:</label>
-            <input type="number" id="form-add-player-birthyear" name="form-add-player-birthyear" required>
-            
-            <label for="form-add-player-club">Club:</label>
-            <input type="text" id="form-add-player-club" name="form-add-player-club" required>
-        </div>
-        <div class="actions">
-            <button type="button" id="player-add" >Add Player</button>
-        </div>
-            
-    </form>
-    <div id="all-player-info">
-        <h2>Actual players:</h2>      
-        <div id="player-list"></div>
-    </div>  
-    <button id="cancelMoveButton" onclick="cancelMoving()" style="display: none;">Cancel moving</button>
-</div>
+    <div id="btn-show-container">
+        <button type="button" class="btn-show" id="btn-show-players">Players</button>
+        <button type="button" class="btn-show" id="btn-show-matches">Matches</button>
+        <button type="button" class="btn-show" id="btn-show-order">Order</button>
+    </div>
 
-<div id="matches-div" style="display: none;">
-    <h1>Matches</h1>
-    <button type="button" id="matches-draw">Draw matches</button>
-    <h2>Overall singletons:</h2>
-    <div id="matches-singletons"></div>
-    <h2>All matches:</h2>
-    <div id="matches-all_matches"></div>
-    <!-- <h2>Played matches:</h2>
-    <div id="matches-played"></div> -->
-</div>
+    <div id="all-player-div">
+        <h1>Players</h1>
+        <h2>Add player:</h2>
+        <form id="all-player-form" class="info-div">
+            <div class="info">
+                <label for="form-add-player-name">Name:</label>
+                <input type="text" id="form-add-player-name" name="form-add-player-name" required>
+                
+                <label for="form-add-player-id">ID:</label>
+                <input type="number" id="form-add-player-id" name="form-add-player-id" required>
+                
+                <label for="form-add-player-birthyear">Birth Year:</label>
+                <input type="number" id="form-add-player-birthyear" name="form-add-player-birthyear" required>
+                
+                <label for="form-add-player-club">Club:</label>
+                <input type="text" id="form-add-player-club" name="form-add-player-club" required>
+            </div>
+            <div class="actions">
+                <button type="button" id="player-add" >Add Player</button>
+            </div>
+                
+        </form>
+        <div id="all-player-info">
+            <h2>Actual players:</h2>      
+            <div id="player-list"></div>
+        </div>  
+        <button id="cancelMoveButton" onclick="cancelMoving()" style="display: none;">Cancel moving</button>
+    </div>
 
-<div id="order-div" style="display: none;">
-    <h1>Actual order</h1>
+    <div id="matches-div" style="display: none;">
+        <h1>Matches</h1>
+        <button type="button" id="matches-draw">Draw matches</button>
+        <h2>Overall singletons:</h2>
+        <div id="matches-singletons"></div>
+        <h2>All matches:</h2>
+        <div id="matches-all_matches"></div>
+        <!-- <h2>Played matches:</h2>
+        <div id="matches-played"></div> -->
+    </div>
+
+    <div id="order-div" style="display: none;">
+        <h1>Actual order</h1>
+    </div>
 </div>
 
     <!-- Include the bundled JavaScript file from the npm package -->
