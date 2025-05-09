@@ -2,7 +2,7 @@
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 0.5em;
     background-color: #f4f4f4;
     color: #333;
     text-align: center;
@@ -13,14 +13,14 @@ h1, h2 {
 }
 
 button, input[type="submit"] {
-    padding: 10px 20px;
+    padding: 0.2em 0.4em;
     background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin: 10px;
+    margin: 0.1em;
 }
 
 button:hover, input[type="submit"]:hover {
@@ -30,7 +30,7 @@ button:hover, input[type="submit"]:hover {
 form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.1em;
     align-items: center;
     max-width: 400px;
     margin: 0 auto;
@@ -52,11 +52,11 @@ input, select {
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 1em;
 }
 
 th, td {
-    padding: 10px;
+    padding: 0.1em;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
@@ -70,8 +70,19 @@ tr:hover {
     background-color: #f9f9f9;
 }
 
+/* Print Results Table */
+#printResultsTable {
+    width: 200mm; /* a little bit (10mm) less A4 paper width */
+    border-collapse: collapse;
+    margin-top: 1em;
+}
+
+#printResultsTable tr:nth-child(2n) {
+    background-color: #f0f0f0;
+}
+
 /* Matches Section */
-#matchesContainer {
+#unPlayedMatchesContainer, #playedMatchesContainer {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -139,5 +150,9 @@ tr:hover {
 
     button, input[type="submit"] {
         display: none; /* Hide buttons for print */
+    }
+
+    #printResultsTable tr{
+        border-top: solid 2px #000000;
     }
 }

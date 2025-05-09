@@ -122,11 +122,13 @@
         }
     </script>
 
+
+    <h2>Participants</h2>
     <input type="file" id="fileInput" accept=".json">
-    <button type="button" onclick="loadFile()">Load File</button>
+    <button type="button" onclick="loadParticipantsFromFile()">Load participants from File</button>
 
     <script>
-        function loadFile() {
+        function loadParticipantsFromFile() {
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
             const reader = new FileReader();
@@ -173,8 +175,7 @@
         }
     </script>
 
-    <h2>Participants</h2>
-    <h2>Add Participant</h2>
+    <h3>Add Participant</h3>
     <form id="addParticipantForm">
         <label for="participantId">Participant ID:</label>
         <input type="number" id="participantId" name="participantId" required><br><br>
@@ -198,8 +199,42 @@
     </form>
 
     <button type="button" onclick="displayParticipants()">Refresh Participant List</button>
+    <button type="button" onclick="showParticipantsForPrint()">Show Participant List for print</button>
+    <button type="button" onclick="showParticipantsEloChange()">Show Participants result - elo changed</button>
+
 
     <script>
+        function showParticipantsEloChange() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const participantsEloChanges = tournament.getParticipantsEloChanges_sorted();
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write('<style>');
+            newWindow.document.write('@import url("style/style2.css");');
+            newWindow.document.write('</style>');
+            newWindow.document.write('<html><head><title>Participants ELO Changes</title></head><body>');
+            newWindow.document.write(`<h1>ELO Changes for ${tournament.name} - ${tournament.date.getFullYear()}</h1>`);
+            newWindow.document.write('<table border="1"><thead><tr><th>#</th><th>Name</th><th>Birth</th><th>Club</th><th>ELO Change</th></tr></thead><tbody>');
+
+            participantsEloChanges.forEach((participantEloChange, index) => {
+                const participant = participantEloChange.participant;
+                newWindow.document.write('<tr>');
+                newWindow.document.write(`<td>${index+1}.</td>`);
+                newWindow.document.write(`<td>${participant.name} ${participant.second_name}</td>`);
+                newWindow.document.write(`<td>${participant.birth.getFullYear()}</td>`);
+                newWindow.document.write(`<td>${participant.club ? participant.club.name : 'N/A'}</td>`);
+                newWindow.document.write(`<td>${participantEloChange.eloChange.toFixed(2)}</td>`);
+                newWindow.document.write('</tr>');
+            });
+
+            newWindow.document.write('</tbody></table>');
+            newWindow.document.write('</body></html>');
+            newWindow.document.close();
+        }
+
         function addParticipant() {
             if (!tournament) {
                 alert("No tournament created yet.");
@@ -267,6 +302,7 @@
                 const cellBirthdate = row.insertCell(2);
                 const cellClub = row.insertCell(3);
                 const cellElo = row.insertCell(4);
+                const cellCheckbox = row.insertCell(5);
 
                 cellId.textContent = participant_res.participant.id;
                 cellName.textContent = `${participant_res.participant.name} ${participant_res.participant.second_name}`;
@@ -275,7 +311,44 @@
                 cellBirthdate.textContent = formattedDate;
                 cellClub.textContent = participant_res.participant.club ? participant_res.participant.club.name : 'N/A';
                 cellElo.textContent = participant_res.result.value.toFixed(2);
+            
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = participant_res.participant.id;
+                cellCheckbox.appendChild(checkbox);
             });
+        }
+
+        function showParticipantsForPrint() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write('<style>');
+            newWindow.document.write('@import url("style/style2.css");');
+            newWindow.document.write('</style>');
+            newWindow.document.write('<html><head><title>Printable Participants List</title></head><body>');
+            newWindow.document.write(`<h1>Participants List for ${tournament.name} - ${tournament.date.getFullYear()}</h1>`);
+            newWindow.document.write('<table border="1"><thead><tr><th>ID</th><th>Name</th><th>Birthdate</th><th>Club</th><th>ELO</th></tr></thead><tbody>');
+
+            tournament.sortResults();
+            tournament.participants_results.forEach(participant_res => {
+                const birthdate = participant_res.participant.birth;
+                const formattedDate = `${birthdate.getDate().toString().padStart(2, '0')}.${(birthdate.getMonth() + 1).toString().padStart(2, '0')}.${birthdate.getFullYear()}`;
+                newWindow.document.write('<tr>');
+                newWindow.document.write(`<td>${participant_res.participant.id}</td>`);
+                newWindow.document.write(`<td>${participant_res.participant.name} ${participant_res.participant.second_name}</td>`);
+                newWindow.document.write(`<td>${formattedDate}</td>`);
+                newWindow.document.write(`<td>${participant_res.participant.club ? participant_res.participant.club.name : 'N/A'}</td>`);
+                newWindow.document.write(`<td>${participant_res.result.value.toFixed(2)}</td>`);
+                newWindow.document.write('</tr>');
+            });
+
+            newWindow.document.write('</tbody></table>');
+            newWindow.document.write('</body></html>');
+            newWindow.document.close();
         }
 
         // Call displayParticipants after loading file or creating tournament
@@ -298,7 +371,7 @@
             singletonsContainer.innerHTML = ''; // Clear existing content
 
             const singletons = tournament.overall_singletons;
-            const singletonsText = singletons.map(player => `(${player.id}) ${player.name}`).join(', ');
+            const singletonsText = singletons.map(player => `(${player.id}) ${player.name} ${player.second_name}`).join(', ');
 
             const singletonsDiv = document.createElement('div');
             singletonsDiv.textContent = "Hráči bez soupeře: " + singletonsText;
@@ -307,6 +380,8 @@
     </script>
     <button type="button" onclick="clearAndRedrawMatches()">Refresh Matches</button>
     <button type="button" onclick="drawNextMatches()">Draw Next Matches</button>
+    <button type="button" onclick="showUnplayedMatchesPrintable()">Show unplayed matches for print</button>
+    <button type="button" onclick="displayPlayedOutMatchesPrintable()">Show played out matches for print</button>
 
     <script>
         function drawNextMatches() {
@@ -315,16 +390,29 @@
                 return;
             }
 
+            const checkedParticipants = Array.from(document.querySelectorAll('#participantsTable tbody input[type="checkbox"]:checked'))
+                .map(checkbox => {
+                    const participantId = parseInt(checkbox.value);
+                    return tournament.participants.find(participant => participant.id === participantId);
+                });
+
+            tournament.not_draw_players = checkedParticipants;
+
+            console.log(checkedParticipants);
+
             tournament.draw();
             clearAndRedrawMatches();
         }
     </script>
-    <div id="matchesContainer"></div>
+    <div id="unPlayedMatchesContainer"></div>
+    <div id="playedMatchesContainer"></div>
 
     <script>
         function clearAndRedrawMatches() {
-            const matchesContainer = document.getElementById('matchesContainer');
-            matchesContainer.innerHTML = ''; // Clear existing matches
+            const upmatchesContainer = document.getElementById('unPlayedMatchesContainer');
+            upmatchesContainer.innerHTML = ''; // Clear existing matches
+            const pmatchesContainer = document.getElementById('playedMatchesContainer');
+            pmatchesContainer.innerHTML = ''; // Clear existing matches
 
             displayUnplayedMatches(); // Redraw unplayed matches
             displayPlayedOutMatches(); // Redraw played out matches
@@ -337,7 +425,7 @@
                 return;
             }
 
-            const matchesContainer = document.getElementById('matchesContainer');
+            const matchesContainer = document.getElementById('unPlayedMatchesContainer');
 
             tournament.getMatches_unplayed().forEach((match, index) => {
                 const matchDiv = document.createElement('div');
@@ -347,6 +435,7 @@
                 const player2 = match.participants[1];
 
                 const matchID = match.id;
+                const players_elo = match.elo_begin.map(elo => elo.toFixed(2));
 
                 matchDiv.innerHTML = `
                     <h3>Zápas ${matchID} Kolo ${tournament.number_of_played_round}</h3>
@@ -361,11 +450,51 @@
                         <input type="number" id="player1Score2_${matchID}" name="player1Score2_${matchID}" required>
                         <input type="number" id="player2Score2_${matchID}" name="player2Score2_${matchID}" required>
                     </div>
+                    <p>ELO: ${players_elo[0]} / ${players_elo[1]}</p>
                     <button type="button" onclick="storeMatchResult(${matchID})">Store Result</button>
                 `;
 
                 matchesContainer.appendChild(matchDiv);
             });
+        }
+
+        function showUnplayedMatchesPrintable() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
+            }
+
+            const matches = tournament.getMatches_unplayed();
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write('<style>');
+            newWindow.document.write('@import url("style/style2.css");');
+            newWindow.document.write('body { width: 210mm; display: flex; flex-wrap: wrap; }'); // Set width to A4 paper size and allow wrapping
+            newWindow.document.write('.match { width: 48%; border: 1px solid black; padding: 5px; margin: 0.1em; box-sizing: border-box; }');
+            newWindow.document.write('.big_font { font-size: 1.2em; }');
+            newWindow.document.write('h3, p { margin: 0.2em; }');
+            newWindow.document.write('.to_fill { margin-top: 1em; }');
+            newWindow.document.write('</style>');
+            newWindow.document.write('<html><head><title>Printable Unplayed Matches</title></head><body>');
+
+            matches.forEach((match, index) => {
+                const player1 = match.participants[0];
+                const player2 = match.participants[1];
+                const matchID = match.id;
+                const players_elo = match.elo_begin.map(elo => elo.toFixed(2));
+
+                newWindow.document.write(`
+                    <div class="match">
+                        <h3>Zápas ${matchID} Kolo ${tournament.number_of_played_round}</h3>
+                        <p class="big_font">${player1.name} ${player1.second_name} vs ${player2.name} ${player2.second_name}</p>
+                        <p class="to_fill">Set 1: ________ vs ________</p>
+                        <p class="to_fill">Set 2: ________ vs ________</p>
+                        <p>ELO: ${players_elo[0]} / ${players_elo[1]}</p>
+                    </div>
+                `);
+            });
+
+            newWindow.document.write('</body></html>');
+            newWindow.document.close();
         }
 
         function displayPlayedOutMatches() {
@@ -374,7 +503,7 @@
                 return;
             }
 
-            const matchesContainer = document.getElementById('matchesContainer');
+            const matchesContainer = document.getElementById('playedMatchesContainer');
 
             tournament.getMatches_playedOut().forEach((match, index) => {
                 const matchDiv = document.createElement('div');
@@ -384,7 +513,8 @@
                 const player2 = match.participants[1];
 
                 const matchID = match.id;
-                const elos = match.elo_change().map(elo => elo.toFixed(2));
+                const players_elo = match.elo_begin.map(elo => elo.toFixed(2));
+                const elos_change = match.elo_change().map(elo => elo.toFixed(2));
 
                 matchDiv.innerHTML = `
                 <h3>Zápas ${matchID} Kolo -</h3>
@@ -399,7 +529,7 @@
                     <input type="number" id="player1Score2_${matchID}" name="player1Score2_${matchID}" value="${match.score.md_values[1].md_values[0]}" placeholder="Set 2" required>
                     <input type="number" id="player2Score2_${matchID}" name="player2Score2_${matchID}" value="${match.score.md_values[1].md_values[1]}" placeholder="Set 2" required>
                 </div>
-                <p>ELO Change: ${elos[0]} / ${elos[1]}</p>
+                <p>ELO: ${players_elo[0]} / ${players_elo[1]} -> change: ${elos_change[0]} / ${elos_change[1]}</p>
                 <button type="button" onclick="storeMatchResult(${matchID})">Store Result</button>
             `;
 
@@ -409,10 +539,10 @@
 
 
         function storeMatchResult(matchIndex) {
-            const player1Score1 = document.getElementById(`player1Score1_${matchIndex}`).value;
-            const player1Score2 = document.getElementById(`player1Score2_${matchIndex}`).value;
-            const player2Score1 = document.getElementById(`player2Score1_${matchIndex}`).value;
-            const player2Score2 = document.getElementById(`player2Score2_${matchIndex}`).value;
+            const player1Score1 = parseInt( document.getElementById(`player1Score1_${matchIndex}`).value );
+            const player1Score2 = parseInt( document.getElementById(`player1Score2_${matchIndex}`).value );
+            const player2Score1 = parseInt( document.getElementById(`player2Score1_${matchIndex}`).value );
+            const player2Score2 = parseInt( document.getElementById(`player2Score2_${matchIndex}`).value );
 
             const match = tournament.matches.find(m => m.id === matchIndex);
             if (!match.isUnplayed()) {
@@ -421,7 +551,7 @@
                 tournament.participants_results.find(pr => pr.participant.id === match.participants[0].id).result.value -= elos[0];
                 tournament.participants_results.find(pr => pr.participant.id === match.participants[1].id).result.value -= elos[1];
             }
-            tournament.setScoreValuesOfMatch(match, [[parseInt(player1Score1), parseInt(player2Score1)], [parseInt(player1Score2), parseInt(player2Score2)]]);
+            tournament.setScoreValuesOfMatch(match, [[player1Score1, player2Score1], [player1Score2, player2Score2]]);
 
             tournament.add_matchToResults(match);
 
@@ -430,47 +560,45 @@
 
     </script>
 
-    <section id="print_result_section">
-        <button type="button" onclick="displayMatchesPrintable()">Refresh matches - printable</button>
-
-        <div id="print_matchesContainer"></div>
-
-    </section>
     <script>
-            function displayMatchesPrintable() {
-                if (!tournament) {
-                    alert("No tournament created yet.");
-                    return;
-                }
-
-                const printResultSection = document.getElementById('print_matchesContainer');
-                printResultSection.innerHTML = ''; // Clear existing content
-
-                tournament.getMatches_playedOut().forEach(match => {
-                    const player1 = match.participants[0];
-                    const player2 = match.participants[1];
-                    const elos = match.elo_change().map(elo => elo.toFixed(2));
-                    const initialElo1 = (player1.elo - elos[0]).toFixed(2);
-                    const initialElo2 = (player2.elo - elos[1]).toFixed(2);
-
-                    const matchDiv = document.createElement('div');
-                    matchDiv.className = 'match printable';
-
-                    matchDiv.innerHTML = `
-                        <p>
-                            (${player1.id}) ${player1.name} ${player1.second_name} [ELO: ${initialElo1}] 
-                            vs 
-                            (${player2.id}) ${player2.name} ${player2.second_name} [ELO: ${initialElo2}]
-                            <br>
-                            Result: ${match.score.md_values[0].md_values[0]}-${match.score.md_values[0].md_values[1]}, ${match.score.md_values[1].md_values[0]}-${match.score.md_values[1].md_values[1]}
-                            <br>
-                            ELO Change: ${elos[0]} / ${elos[1]}
-                        </p>
-                    `;
-
-                    printResultSection.appendChild(matchDiv);
-                });
+        function displayPlayedOutMatchesPrintable() {
+            if (!tournament) {
+                alert("No tournament created yet.");
+                return;
             }
+
+            const matches = tournament.getMatches_playedOut();
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write('<style>');
+            newWindow.document.write('@import url("style/style2.css");');
+            newWindow.document.write('</style>');
+            newWindow.document.write('<html><head><title>Printable Matches</title></head><body>');
+            newWindow.document.write(`<h1>${tournament.name} - ${tournament.date.toDateString()}</h1>`);
+            newWindow.document.write('<table id="printResultsTable"><thead><tr><th></th><th></th><th>Elo</th><th>Change</th><th>Score</th></tr></thead><tbody>');
+
+            matches.forEach((match, index) => {
+                const player1 = match.participants[0];
+                const player2 = match.participants[1];
+                const players_elo = match.elo_begin.map(elo => elo.toFixed(2));
+                const elos_change = match.elo_change().map(elo => elo.toFixed(2));
+                const score = match.score.md_values.map(set => `${set.md_values[0]} - ${set.md_values[1]}`).join(',</br>');
+
+                const player1Birthdate = `${player1.birth.getDate().toString().padStart(2, '0')}.${(player1.birth.getMonth() + 1).toString().padStart(2, '0')}.${player1.birth.getFullYear()}`;
+                const player2Birthdate = `${player2.birth.getDate().toString().padStart(2, '0')}.${(player2.birth.getMonth() + 1).toString().padStart(2, '0')}.${player2.birth.getFullYear()}`;
+
+                newWindow.document.write(`<tr>`);
+                newWindow.document.write(`<td>${player1.name} ${player1.second_name}</br>(${player1.club ? player1.club.name : 'N/A'})</td>`);
+                newWindow.document.write(`<td>${player2.name} ${player2.second_name}</br> (${player2.club ? player2.club.name : 'N/A'})</td>`);
+                newWindow.document.write(`<td>${players_elo[0]} /</br> ${players_elo[1]}</td>`);
+                newWindow.document.write(`<td>${elos_change[0]} /</br> ${elos_change[1]}</td>`);
+                newWindow.document.write(`<td>${score}</td>`);
+                newWindow.document.write('</tr>');
+            });
+
+            newWindow.document.write('</tbody></table>');
+            newWindow.document.write('</body></html>');
+            newWindow.document.close();
+        }
     </script>
 
 </body>
